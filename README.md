@@ -5,16 +5,6 @@ Move your cursor, smooth the movement, and perform **double-clicks** without tou
 
 ---
 
-## 🎥 Demo
-
-You can add a GIF here to show the functionality:
-
-```
-![Gesture Mouse Demo](assets/demo.gif)
-```
-
----
-
 ## 📂 Project Structure
 
 ```
@@ -29,20 +19,13 @@ gesture-mouse/
 
 ## ⚙️ Installation
 
-1. Clone the repository:
-
-```bash
-git clone https://github.com/your-username/gesture-mouse.git
-cd gesture-mouse
-```
-
-2. Install Python dependencies:
+1. Install Python dependencies:
 
 ```bash
 pip install opencv-python mediapipe pyautogui numpy
 ```
 
-3. Optional: Use a **CUDA-enabled GPU** if OpenCV supports it for faster webcam processing.
+2. Optional: Use a **CUDA-enabled GPU** if OpenCV supports it for faster webcam processing.
 
 ---
 
@@ -86,7 +69,7 @@ python gesture_mouse.py
 * Recommended webcam: **30+ FPS** for smooth tracking.
 * Adjust `smoothening` and `CLICK_RATIO` for personalized control.
 * Make sure your screen resolution is detected correctly; it automatically adapts.
-* You can create a GIF from your webcam session to showcase functionality in the README.
+
 
 ---
 
