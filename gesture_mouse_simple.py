@@ -10,10 +10,10 @@ mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
 
 cap = cv2.VideoCapture(0)
-screen_w, screen_h = pyautogui.size()  # اندازه صفحه نمایش
+screen_w, screen_h = pyautogui.size()
 
 prev_x, prev_y = 0, 0
-smoothening = 7  # مقدار صاف کردن حرکت موس
+smoothening = 7
 click_flag = False
 
 with mp_hands.Hands(min_detection_confidence=0.7,
@@ -31,63 +31,103 @@ with mp_hands.Hands(min_detection_confidence=0.7,
 
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
-                mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+                mp_drawing.draw_landmarks(
+                    frame,
+                    hand_landmarks,
+                    mp_hands.HAND_CONNECTIONS
+                )
 
                 landmarks = hand_landmarks.landmark
 
                 # ----------------------------
-                # تشخیص انگشت‌ها
+                # Finger detection
                 # ----------------------------
-        
-                # شست
-                thumb_down  = landmarks[4].x > landmarks[3].x
-                # اشاره
-                index_up    =landmarks[8].y < landmarks[6].y
-                # وسط
-                middle_down   =landmarks[12].y > landmarks[10].y
-                # حلقه
-                ring_down   =landmarks[16].y > landmarks[14].y
-                # کوچک
-                pinky_up  =landmarks[20].y < landmarks[18].y
+
+                # Thumb
+                thumb_down = landmarks[4].x > landmarks[3].x
+
+                # Index finger
+                index_up = landmarks[8].y < landmarks[6].y
+
+                # Middle finger
+                middle_down = landmarks[12].y > landmarks[10].y
+
+                # Ring finger
+                ring_down = landmarks[16].y > landmarks[14].y
+
+                # Pinky finger
+                pinky_up = landmarks[20].y < landmarks[18].y
 
                 # ----------------------------
-                # شرط حرکت موس فقط وقتی اشاره و وسط بالا باشند
+                # Move the mouse only when
+                # the index finger and pinky are up
                 # ----------------------------
                 if index_up and pinky_up and thumb_down and middle_down and ring_down:
-                    
+
                     margin_x = int(w * 0.2)
-                    margin_y = int(h * 0.2)  # اشاره و وسط بالا
-                    x = np.clip(landmarks[8].x * w, margin_x, w - margin_x)
-                    y = np.clip(landmarks[8].y * h, margin_y, h - margin_y)
+                    margin_y = int(h * 0.2)
 
-                    # تبدیل به مختصات صفحه نمایش
-                    screen_x = np.interp(x, (margin_x, w - margin_x), (0, screen_w))
-                    screen_y = np.interp(y, (margin_y, h - margin_y), (0, screen_h))
+                    x = np.clip(
+                        landmarks[8].x * w,
+                        margin_x,
+                        w - margin_x
+                    )
 
-                    # Smooth حرکت موس
+                    y = np.clip(
+                        landmarks[8].y * h,
+                        margin_y,
+                        h - margin_y
+                    )
+
+                    # Convert to screen coordinates
+                    screen_x = np.interp(
+                        x,
+                        (margin_x, w - margin_x),
+                        (0, screen_w)
+                    )
+
+                    screen_y = np.interp(
+                        y,
+                        (margin_y, h - margin_y),
+                        (0, screen_h)
+                    )
+
+                    # Smooth mouse movement
                     curr_x = prev_x + (screen_x - prev_x) / smoothening
                     curr_y = prev_y + (screen_y - prev_y) / smoothening
+
                     pyautogui.moveTo(curr_x, curr_y)
 
                     prev_x, prev_y = curr_x, curr_y
 
                 # ----------------------------
-                # تشخیص دابل کلیک (چسبیدن شست و انگشت کوچک)
+                # Detect double click
+                # (thumb touching pinky)
                 # ----------------------------
-                x1, y1 = int(landmarks[4].x * w), int(landmarks[4].y * h)   # شست
-                x2, y2 = int(landmarks[20].x * w), int(landmarks[20].y * h) # انگشت کوچک
+                x1, y1 = int(landmarks[4].x * w), int(landmarks[4].y * h)   # Thumb
+                x2, y2 = int(landmarks[20].x * w), int(landmarks[20].y * h) # Pinky
+
                 distance = np.hypot(x2 - x1, y2 - y1)
 
-                if distance < 40:  # آستانه فاصله
+                if distance < 40:  # Distance threshold
                     if not click_flag:
                         pyautogui.doubleClick()
                         click_flag = True
-                        cv2.putText(frame, "Double Click", (50,50),
-                                    cv2.FONT_HERSHEY_SIMPLEX,1,(0,255,0),2)
+
+                        cv2.putText(
+                            frame,
+                            "Double Click",
+                            (50, 50),
+                            cv2.FONT_HERSHEY_SIMPLEX,
+                            1,
+                            (0, 255, 0),
+                            2
+                        )
                 else:
                     click_flag = False
 
         cv2.imshow("Gesture Mouse", frame)
+
         if cv2.waitKey(1) & 0xFF == 27:
             break
 
